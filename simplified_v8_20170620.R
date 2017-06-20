@@ -92,60 +92,9 @@ ui <- fluidPage(
                     sliderInput(inputId="MSATsensA", label = "sensitivity HS RDT (micro detectable, asym)", value = 87, min=0, max=100,step=5),
                     sliderInput(inputId="MSATsensU", label = "sensitivity HS RDT (micro undetectable, asym)", value = 4, min=0, max=100,step=5)
              )
-    ),
-    tabPanel(title= strong("Download"),
-             br(),
-             downloadButton("downloadTable", "Download current values of parameters"),
-             downloadButton("downloadplot","Download high resolution figure")),
-    tabPanel(title= strong("Restore your parameters"),
-             wellPanel(
-               fileInput(inputId = "file", label ="Your input file:", accept = c(".csv"))
-             )
-    ),
-    tabPanel(title=strong("User Manual & Help"),
-             br(),
-             tags$ul(tags$li(strong(a(href="https://www.dropbox.com/s/d5q4ldkxtm2az6m/RAI_strategydesigntool_usermanual_03032017.pdf?dl=0", "Download User Manual")))),
-             strong("Contact the developers for any questions and feedback"),
-             tags$ul(
-               tags$li(a(href="http://www.tropmedres.ac/sai-thein-than-tun","Sai Thein Than Tun, "), a(href="mailto:sai@tropmedres.ac","sai@tropmedres.ac")),
-               tags$li(a(href="http://www.tropmedres.ac/researchers/researcher/sompob-saralamba","Sompob Saralamba, "),a(href="mailto:sompob@tropmedres.ac","sompob@tropmedres.ac")),
-               tags$li("Shwe Sin Kyaw"),
-               tags$li("Phetsavanh Chanthavilay"),
-               tags$li("Olivier Celhay, ", a(href="mailto:olivier.celhay@gmail.com","olivier.celhay@gmail.com")),
-               tags$li("Trần Đăng Nguyên"),
-               tags$li("Trần Nguyễn Anh Thư"),
-               tags$li("Daniel M Parker"),
-               tags$li("Professor Maciej F Boni"),
-               tags$li("Professor Arjen M Dondorp"),
-               tags$li(a(href="http://www.tropmedres.ac/researchers/researcher/lisa-white","Professor Lisa White, "), a(href="mailto:lisa@tropmedres.ac","lisa@tropmedres.ac"))
-             ))
+    )
   ),
-  fluidRow(plotOutput(outputId = "MODEL")),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  br(),
-  hr(),
-  fluidRow(h4("          Legend")),
-  fluidRow(h4("          Grey solid line: baseline scenario. Blue solid line: elimination strategy scenario.")), 
-  fluidRow(h4("          Dark blue solid line: target baseline API. Grey dashed lines: start and end of elimination activities.")),
-  fluidRow(h4("          Red dashed line: pre-elimination threshold (API = 1 per 1000 per year)"))
+  fluidRow(plotOutput(outputId = "MODEL"))
   
 )
 
@@ -320,55 +269,7 @@ server <- function(input, output, session) {
   #getting back previous parameters
   data <- reactive({read.csv(input$file$datapath)})
   datavalue <- reactive(data()[,2])
-  observeEvent(input$file,{
-    updateCheckboxInput(session, "EDATon", value = datavalue()[1])
-    updateCheckboxInput(session, "ITNon", value = datavalue()[2])
-    updateCheckboxInput(session, "IRSon", value = datavalue()[3])
-    updateCheckboxInput(session, "MDAon", value = datavalue()[4])
-    updateCheckboxInput(session, "primon", value = datavalue()[5])
-    updateCheckboxInput(session, "MSATon", value = datavalue()[6])
-    updateSliderInput(session, "VACon", value = datavalue()[7])
-    
-    updateSliderInput(session, "API", value = datavalue()[8])
-    
-    updateSliderInput(session, "bh_max", value = datavalue()[9])
-    updateSliderInput(session, "eta", value = datavalue()[10])
-    updateSliderInput(session, "covEDAT0", value = datavalue()[11])
-    updateSliderInput(session, "covITN0", value = datavalue()[12])
-    updateSliderInput(session, "effITN", value = datavalue()[13])
-    updateSliderInput(session, "covIRS0", value = datavalue()[14])
-    updateSliderInput(session, "effIRS", value = datavalue()[15])
-    updateSliderInput(session, "muC", value = datavalue()[16])
-    updateSliderInput(session, "muA", value = datavalue()[17])
-    updateSliderInput(session, "muU", value = datavalue()[18])
-    updateSliderInput(session, "percfail2018", value = datavalue()[19])
-    updateSliderInput(session, "percfail2019", value = datavalue()[20])
-    updateSliderInput(session, "percfail2020", value = datavalue()[21])
-    updateSliderInput(session, "EDATscale", value = datavalue()[22])
-    updateSliderInput(session, "covEDATi", value = datavalue()[23])
-    updateSliderInput(session, "ITNscale", value = datavalue()[24])
-    updateSliderInput(session, "covITNi", value = datavalue()[25])
-    updateSliderInput(session, "IRSscale", value = datavalue()[26])
-    updateSliderInput(session, "covIRSi", value = datavalue()[27])
-    updateSliderInput(session, "cmda_1", value = datavalue()[28])
-    updateSliderInput(session, "cmda_2", value = datavalue()[29])
-    updateSliderInput(session, "cmda_3", value = datavalue()[30])
-    updateSliderInput(session, "tm_1", value = datavalue()[31])
-    updateSliderInput(session, "tm_2", value = datavalue()[32])
-    updateSliderInput(session, "tm_3", value = datavalue()[33])
-    updateSliderInput(session, "dm", value = datavalue()[34])
-    updateSliderInput(session, "lossd", value = datavalue()[35])
-    updateSliderInput(session, "MSATscale", value = datavalue()[36])
-    updateSliderInput(session, "covMSATi", value = datavalue()[37])
-    updateSliderInput(session, "MSATsensC", value = datavalue()[38])
-    updateSliderInput(session, "MSATsensA", value = datavalue()[39])
-    updateSliderInput(session, "MSATsensU", value = datavalue()[40])
-    updateSliderInput(session, "effv_1", value = datavalue()[41])
-    updateSliderInput(session, "effv_2", value = datavalue()[42])
-    updateSliderInput(session, "effv_3", value = datavalue()[43])
-    updateSliderInput(session, "vh", value = datavalue()[44])
-    
-  })
+  
   
   # initial prevalence
   initprevR <- reactive(0.001*input$API)
@@ -444,11 +345,7 @@ server <- function(input, output, session) {
     tmp2
   })
   
-  output$downloadTable <- downloadHandler(
-    filename = function(){paste('MalMod_',gsub("\\:","",Sys.time()),'.csv',sep='')},
-    content = function(file) {
-      write.csv(tableContentR(), file, row.names = FALSE)
-    })
+  
 }
 
 shinyApp(ui = ui, server = server)
