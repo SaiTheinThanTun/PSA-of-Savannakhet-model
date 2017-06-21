@@ -17,51 +17,49 @@ VACon <- TRUE
 MSATon <- TRUE
 primon <- FALSE
 
-no.s <- 4 #no. of simulations/ no. of values between the range
-result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'modified copy of shiny2ode.R'
+#no.s <- 4 #no. of simulations/ no. of values between the range
+default.result <- matrix(NA, 1, 2) #valueTable and valueRange are from 'modified copy of shiny2ode.R'
 
 simValueTable <- genSimValue(valueRange,no.s)
 
-for(i in 1:nrow(simValueTable)){
   #input (later will serve as getting data from for loop)
-  API <- simValueTable[i,1]
-  bh_max <- simValueTable[i,2]
-  eta <- simValueTable[i,3]
-  covEDAT0 <- simValueTable[i,4]
-  covITN0 <- simValueTable[i,5]
-  effITN <- simValueTable[i,6]
-  covIRS0 <- simValueTable[i,7]
-  effIRS <- simValueTable[i,8]
-  muC <- simValueTable[i,9]
-  muA <- simValueTable[i,10]
-  muU <- simValueTable[i,11]
-  percfail2018 <- simValueTable[i,12]
-  percfail2019 <- simValueTable[i,13]
-  percfail2020 <- simValueTable[i,14]
-  EDATscale <- simValueTable[i,15]
-  covEDATi <- simValueTable[i,16]
-  ITNscale <- simValueTable[i,17]
-  covITNi <- simValueTable[i,18]
-  IRSscale <- simValueTable[i,19]
-  covIRSi <- simValueTable[i,20]
-  lossd <- simValueTable[i,21]
-  dm <- simValueTable[i,22]
-  cmda_1 <- simValueTable[i,23]
-  cmda_2 <- simValueTable[i,24]
-  cmda_3 <- simValueTable[i,25]
-  tm_1 <- simValueTable[i,26]
-  tm_2 <- simValueTable[i,27]
-  tm_3 <- simValueTable[i,28]
-  effv_1 <- simValueTable[i,29]
-  effv_2 <- simValueTable[i,30]
-  effv_3 <- simValueTable[i,31]
-  vh <- simValueTable[i,32]
-  MSATscale <- simValueTable[i,33]
-  covMSATi <- simValueTable[i,34]
-  MSATsensC <- simValueTable[i,35]
-  MSATsensA <- simValueTable[i,36]
-  MSATsensU <- simValueTable[i,37]
-  
+API <- 10
+bh_max <- 20
+eta <- 30
+covEDAT0 <- 25
+covITN0 <- 70
+effITN <- 30
+covIRS0 <- 0
+effIRS <- 15
+muC <- 1
+muA <- 1
+muU <- 1
+percfail2018 <- 5
+percfail2019 <- 15
+percfail2020 <- 30
+EDATscale <- 1
+covEDATi <- 70
+ITNscale <- 1
+covITNi <- 90
+IRSscale <- 1
+covIRSi <- 90
+lossd <- 30
+dm <- 6
+cmda_1 <- 50
+cmda_2 <- 50
+cmda_3 <- 50
+tm_1 <- 9
+tm_2 <- 10
+tm_3 <- 11
+effv_1 <- 75
+effv_2 <- 80
+effv_3 <- 92
+vh <- 90
+MSATscale <- 1
+covMSATi <- 90
+MSATsensC <- 99
+MSATsensA <- 87
+MSATsensU <- 4  
   #non-reactive parameters
   # define the number of weeks to run the model
   dt<-1/12
@@ -233,29 +231,5 @@ for(i in 1:nrow(simValueTable)){
   
   #GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
   
-  result[i,1] <- GMSout[nrow(GMSout),3]
-  result[i,2] <- GMSout[nrow(GMSout),4]
-}
-
-write.csv(result,paste("result/psa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
-
-incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s)
-prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s)
-
-#get default.result
-source('running_psa_defaultValue.R')
-
-incidenceDiff <- incidenceT-default.result[,1]
-incidenceMin <- apply(incidenceDiff,1,min)
-incidenceMax <- apply(incidenceDiff,1,max)
-incidenceRange <- as.data.frame(cbind(incidenceMin,incidenceMax, valueTable[,1]))
-#sort
-#label in barplot
-
-barplot(incidenceRange[,1][1:3], horiz=T, xlim=c(-.3,1), beside = T)
-barplot(incidenceRange[,2][1:3], horiz=T, beside=T, add=T)
-
-prevalenceDiff <- prevalenceT-default.result[,1]
-prevalenceMin <- apply(prevalenceDiff,1,min)
-prevalenceMax <- apply(prevalenceDiff,1,max)
-prevalenceRange <- cbind(prevalenceMin,prevalenceMax)
+  default.result[1,1] <- GMSout[nrow(GMSout),3]
+  default.result[1,2] <- GMSout[nrow(GMSout),4]
