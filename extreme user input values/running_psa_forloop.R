@@ -4,7 +4,7 @@ library(shiny)
 library(TSA)
 library(Rcpp)
 sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
-source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
+source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/extreme user input values/modified copy of shiny2ode.R")
 
 #code to construct the 'for' loop for PSA will be generated from sourcing 'modified copy of shiny2ode.R'
 #valueTable was also in there
