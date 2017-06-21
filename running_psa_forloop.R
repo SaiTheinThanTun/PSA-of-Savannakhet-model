@@ -239,8 +239,8 @@ for(i in 1:nrow(simValueTable)){
 
 write.csv(result,paste("result/psa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
 
-incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s)
-prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s)
+incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s, byrow = T)
+prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s, byrow = T)
 
 #get default.result
 source('running_psa_defaultValue.R')
