@@ -2,101 +2,54 @@ library(deSolve)
 library(shiny)
 library(TSA)
 library(Rcpp)
-sourceCpp("modGMS.cpp")
+sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
 
+EDATon <- TRUE
+ITNon <- TRUE
+IRSon <- TRUE
+MDAon <- TRUE
+VACon <- TRUE
+MSATon <- TRUE
+primon <- FALSE
 
-ui <- fluidPage(
-  tabsetPanel(
-    id="panels",
-    tabPanel(title = strong("Baseline"),
-             column(3,
-                    sliderInput(inputId="API", label = "baseline API", value = 10, min=1, max=100,step=0.5),
-                    sliderInput(inputId="bh_max", label = "number of mosquito bites per human per night (peak season)", value = 20, min=0, max=80,step=1), 
-                    sliderInput(inputId="eta", label = "% of all infections that are caught outside the village (forest)", value = 30, min=0, max=100,step=10),
-                    sliderInput(inputId="covEDAT0", label = "baseline % of all clinical cases treated", value = 25, min=0, max=100)
-             ),
-             column(3,
-                    sliderInput(inputId="covITN0", label = "baseline coverage of ITN (%) ", value = 70, min=0, max=90,step=.5),
-                    sliderInput(inputId="effITN", label = "% of infections averted due to ownership of ITN ", value = 30, min=0, max=50), 
-                    sliderInput(inputId="covIRS0", label = "baseline coverage of IRS (%) ", value = 0, min=0, max=90,step=10),
-                    sliderInput(inputId="effIRS", label = "% reduction in biting rate due to IRS ", value = 15, min=0, max=25,step=5)
-             ),
-             column(3,
-                    sliderInput(inputId="muC", label = "imported clinical cases per 1000 population per year ", value = 1, min=0, max=10,step=1),
-                    sliderInput(inputId="muA", label = "imported asymptomatic microscopically detectable carriers per 1000 population per year ", value = 1, min=0, max=100,step=1),
-                    sliderInput(inputId="muU", label = "imported asymptomatic microscopically undetectable carriers per 1000 population per year ", value = 1, min=0, max=100,step=1)
-             ),
-             column(3,
-                    sliderInput(inputId="percfail2018", label = "% of cases failing treatment in 2018 and before ", value = 5, min=0, max=100,step=5),
-                    sliderInput(inputId="percfail2019", label = "% of cases failing treatment in 2019  ", value = 15, min=0, max=100,step=5),
-                    sliderInput(inputId="percfail2020", label = "% of cases failing treatment in 2020 and after  ", value = 30, min=0, max=100,step=5)
-             )
-    ),
-    
-    tabPanel(title = strong("Interventions currently available"),
-             column(4,
-                    wellPanel(
-                      h3("Early Diagnosis and Treatment"),
-                      checkboxInput(inputId="EDATon", label = "switch on scale up of EDAT ", value = FALSE),
-                      checkboxInput(inputId="primon", label = "ACT+primaquine for EDAT and MDA ", value = FALSE), #under EDAT checkbox
-                      sliderInput(inputId="EDATscale", label = "years to scale up EDAT ", value = 1, min=.25, max=3, step=.25),
-                      sliderInput(inputId="covEDATi", label = "new % of all clinical cases treated", value = 70, min=0, max=100,step=5)
-                    )), 
-             column(4,wellPanel(
-               h3("Insecticide Treated Net (LLIN)"),
-               checkboxInput(inputId="ITNon", label = "switch on scale up of LLIN", value = FALSE),
-               sliderInput(inputId="ITNscale", label = "years to universal access to LLIN", value = 1, min=.25, max=3, step=.25),
-               sliderInput(inputId="covITNi", label = "new bed-net use of LLIN (%)", value = 90, min=0, max=90,step=5)
-             )),
-             column(4,wellPanel(
-               h3("Indoor Residual Spray"),
-               checkboxInput(inputId="IRSon", label = "switch on scale up of IRS ", value = FALSE),
-               sliderInput(inputId="IRSscale", label = "years to scale up IRS ", value = 1, min=.25, max=3, step=.25),
-               sliderInput(inputId="covIRSi", label = "new coverage of IRS (%) ", value = 90, min=0, max=90,step=5)
-             ))
-    ),
-    tabPanel(title = strong("Interventions under trial: Focal MVDA (hotspot)"),
-             column(3,
-                    checkboxInput(inputId="MDAon", label = "switch on MDA", value = FALSE), #6
-                    sliderInput(inputId="lossd", label = "days prophylaxis provided by the ACT", value = 30, min=15, max=30,step=1),
-                    sliderInput(inputId="dm", label = "months to complete each round ", value = 6, min=1, max=24,step=0.5)
-                    
-             ),
-             column(3,
-                    sliderInput(inputId="cmda_1", label = "effective population coverage of focal MDA in round 1 ", value = 50, min=0, max=100,step=10),
-                    sliderInput(inputId="cmda_2", label = "effective population coverage of focal MDA in round 2 ", value = 50, min=0, max=100,step=10),
-                    sliderInput(inputId="cmda_3", label = "effective population coverage of focal MDA in round 3 ", value = 50, min=0, max=100,step=10)
-             ),
-             
-             column(3,
-                    sliderInput(inputId="tm_1", label = "timing of 1st round [2018+ no. of month, 1 means Jan'2018, 13 means Jan'2019]", value = 9, min=1, max=36,step=1),
-                    sliderInput(inputId="tm_2", label = "timing of 2nd round [2018+ no. of month]", value = 10, min=2, max=36,step=1),
-                    sliderInput(inputId="tm_3", label = "timing of 3rd round [2018+ no. of month]", value = 11, min=3, max=36,step=1)
-             ),
-             column(3,
-                    radioButtons(inputId="VACon", label = "With vaccination: ", choices = c("No"=0, "Yes"=1), selected = 0, inline=TRUE),
-                    sliderInput(inputId="effv_1", label = "% protective efficacy of RTS,S with 1st dose", value = 75, min=0, max=100),
-                    sliderInput(inputId="effv_2", label = "% protective efficacy of RTS,S with 2nd dose", value = 80, min=0, max=100),
-                    sliderInput(inputId="effv_3", label = "% protective efficacy of RTS,S with 3rd dose", value = 92, min=0, max=100),
-                    sliderInput(inputId="vh", label = "half-life of vaccine protection (days)", value = 90, min=10, max=500,step=10)
-             )
-    ),
-    tabPanel(title = strong("Interventions under trial: Focal MSAT (mobile)"),
-             column(3,
-                    checkboxInput(inputId="MSATon", label = "switch on MSAT for imported cases", value = FALSE),
-                    sliderInput(inputId="MSATscale", label = "years to scale up MSAT ", value = 1, min=.25, max=3, step=.25), 
-                    sliderInput(inputId="covMSATi", label = "new coverage of MSAT (%)", value = 90, min=0, max=100,step=10)
-             ),
-             column(3,
-                    sliderInput(inputId="MSATsensC", label = "sensitivity HS RDT (clinical) ", value = 99, min=0, max=100,step=5),
-                    sliderInput(inputId="MSATsensA", label = "sensitivity HS RDT (micro detectable, asym)", value = 87, min=0, max=100,step=5),
-                    sliderInput(inputId="MSATsensU", label = "sensitivity HS RDT (micro undetectable, asym)", value = 4, min=0, max=100,step=5)
-             )
-    )
-  ),
-  fluidRow(plotOutput(outputId = "MODEL"))
-  
-)
+#input (later will serve as getting data from for loop)
+API <- 10
+bh_max <- 20
+eta <- 30
+covEDAT0 <- 25
+covITN0 <- 70
+effITN <- 30
+covIRS0 <- 0
+effIRS <- 15
+muC <- 1
+muA <- 1
+muU <- 1
+percfail2018 <- 5
+percfail2019 <- 15
+percfail2020 <- 30
+EDATscale <- 1
+covEDATi <- 70
+ITNscale <- 1
+covITNi <- 90
+IRSscale <- 1
+covIRSi <- 90
+lossd <- 30
+dm <- 6
+cmda_1 <- 50
+cmda_2 <- 50
+cmda_3 <- 50
+tm_1 <- 9
+tm_2 <- 10
+tm_3 <- 11
+effv_1 <- 75
+effv_2 <- 80
+effv_3 <- 92
+vh <- 90
+MSATscale <- 1
+covMSATi <- 90
+MSATsensC <- 99
+MSATsensA <- 87
+MSATsensU <- 4
 
 #non-reactive parameters
 # define the number of weeks to run the model
@@ -204,7 +157,6 @@ runGMS<-function(initprev, scenario, param)
 }
 
 
-server <- function(input, output, session) {
   scenario_0<-c(EDATon = 0,
                 ITNon = 0,
                 IRSon = 0,
@@ -213,76 +165,73 @@ server <- function(input, output, session) {
                 MSATon = 0,
                 VACon = 0)
   
-  scenario_iR<-reactive(c(EDATon = input$EDATon,
-                          ITNon = input$ITNon,
-                          IRSon = input$IRSon,
-                          MDAon = input$MDAon,
-                          primon = input$primon,
-                          MSATon = input$MSATon,
-                          VACon = as.numeric(input$VACon)))
+  scenario_iR<-c(EDATon = EDATon,
+                          ITNon = ITNon,
+                          IRSon = IRSon,
+                          MDAon = MDAon,
+                          primon = primon,
+                          MSATon = MSATon,
+                          VACon = as.numeric(VACon))
   
-  parametersR <- reactive(c(
-    bh_max = input$bh_max,                 # bites per human per night
-    eta = input$eta,
-    covEDAT0 = input$covEDAT0,
-    covITN0 = input$covITN0,
-    effITN = input$effITN,
-    covIRS0 = input$covIRS0,
-    effIRS = input$effIRS,
-    muC = input$muC,
-    muA = input$muA,
-    muU = input$muU,
-    percfail2018 = input$percfail2018,
-    percfail2019 = input$percfail2019,
-    percfail2020 = input$percfail2020,
+  parametersR <- c(
+    bh_max = bh_max,                 # bites per human per night
+    eta = eta,
+    covEDAT0 = covEDAT0,
+    covITN0 = covITN0,
+    effITN = effITN,
+    covIRS0 = covIRS0,
+    effIRS = effIRS,
+    muC = muC,
+    muA = muA,
+    muU = muU,
+    percfail2018 = percfail2018,
+    percfail2019 = percfail2019,
+    percfail2020 = percfail2020,
     
-    EDATscale = input$EDATscale,
-    covEDATi = input$covEDATi,
-    ITNscale = input$ITNscale,
-    covITNi = input$covITNi,
-    IRSscale = input$IRSscale,
-    covIRSi = input$covIRSi,
-    cmda_1 = input$cmda_1,
-    cmda_2 = input$cmda_2,
-    cmda_3 = input$cmda_3,
-    tm_1 = input$tm_1,          # timing of 1st round [2018 to 2021 - 1 month steps]
-    tm_2 = input$tm_2,          # timing of 2nd round [2018+(1/12) to 2021 - 1 month steps]
-    tm_3 = input$tm_3,          # timing of 3rd round [2018+(2/12) to 2021 - 1 month steps]
-    dm = input$dm,
-    lossd = input$lossd,
-    cm_1 = input$cm_1,
-    cm_2 = input$cm_2,
-    cm_3 = input$cm_3,
+    EDATscale = EDATscale,
+    covEDATi = covEDATi,
+    ITNscale = ITNscale,
+    covITNi = covITNi,
+    IRSscale = IRSscale,
+    covIRSi = covIRSi,
+    cmda_1 = cmda_1,
+    cmda_2 = cmda_2,
+    cmda_3 = cmda_3,
+    tm_1 = tm_1,          # timing of 1st round [2018 to 2021 - 1 month steps]
+    tm_2 = tm_2,          # timing of 2nd round [2018+(1/12) to 2021 - 1 month steps]
+    tm_3 = tm_3,          # timing of 3rd round [2018+(2/12) to 2021 - 1 month steps]
+    dm = dm,
+    lossd = lossd,
     
-    MSATscale = input$MSATscale,
-    covMSATi = input$covMSATi,
-    MSATsensC = input$MSATsensC,
-    MSATsensA = input$MSATsensA,
-    MSATsensU = input$MSATsensU,
+    MSATscale = MSATscale,
+    covMSATi = covMSATi,
+    MSATsensC = MSATsensC,
+    MSATsensA = MSATsensA,
+    MSATsensU = MSATsensU,
     
-    effv_1 = input$effv_1,
-    effv_2 = input$effv_2,
-    effv_3 = input$effv_3,
-    vh = input$vh
-  ))
+    effv_1 = effv_1,
+    effv_2 = effv_2,
+    effv_3 = effv_3,
+    vh = vh
+  )
   
   #getting back previous parameters
-  data <- reactive({read.csv(input$file$datapath)})
-  datavalue <- reactive(data()[,2])
+  # data <- reactive({read.csv(input$file$datapath)})
+  # datavalue <- reactive(data()[,2])
   
   
   # initial prevalence
-  initprevR <- reactive(0.001*input$API)
+  initprevR <- (0.001*API)
   
-  GMSout0R <- reactive(runGMS(initprevR(), scenario_0,parametersR()))
+  GMSout0R <- runGMS(initprevR, scenario_0,parametersR)
   
-  GMSoutiR <- reactive(runGMS(initprevR(), scenario_iR(),parametersR()))
+  GMSoutiR <- runGMS(initprevR, scenario_iR,parametersR)
   
   plotR <- function()
   {
-    GMSout0<-GMSout0R()
+    GMSout0<-GMSout0R
     
-    GMSouti<-GMSoutiR()
+    GMSouti<-GMSoutiR
     
     times<-GMSout0[,1]
     clinmonth_det<-cbind(GMSout0[,2],GMSouti[,2])
@@ -296,9 +245,9 @@ server <- function(input, output, session) {
     
     
     # PLOTTING
-    par(mfrow=c(1,2), cex=1.5)
+    par(mfrow=c(1,2), cex=1)
     
-    maxy<-max(finclin,input$API/12)
+    maxy<-max(finclin,API/12)
     x<-times[(runin:length(clinmonth_det[,1]))]
     y1<-clinmonth_det[runin:length(clinmonth_det[,1]),1]
     y2<-clinmonth_tot[runin:length(clinmonth_tot[,1]),1]
@@ -317,7 +266,7 @@ server <- function(input, output, session) {
     
     lines(c(2018,2018),c(-maxy,2*maxy),col="dark grey",lty=3,lwd=2)
     
-    abline(h=input$API/12,col="dark blue",lty=1,lwd=1)
+    abline(h=API/12,col="dark blue",lty=1,lwd=1)
     abline(h=1/12,col="red",lty=3,lwd=3)
     maxy<-finprev
     plot(times[(runin:length(prevalence[,1]))],prevalence[(runin:length(prevalence[,1])),1], type='l',lty=1,col=rgb(0,0,0,alpha=0.25),xlab = "Time",ylab="% prevalence",main="Predicted true prevalence",ylim=c(0,maxy),lwd=6)
@@ -326,26 +275,22 @@ server <- function(input, output, session) {
     
   }
   
-  output$MODEL <- renderPlot({
+  
     plotR()
-  })
   
-  output$downloadplot <- downloadHandler(
-    filename = function(){paste('MalMod_',gsub("\\:","",Sys.time()),'.png',sep='')},
-    content = function(file) {
-      png(filename=file, height= 1600, width=4800, units= "px", res=300) #if(...=="png"){png(file)} else if(...=="pdf"){pdf(file)}
-      plotR()
-      dev.off()
-    })
+  # output$downloadplot <- downloadHandler(
+  #   filename = function(){paste('MalMod_',gsub("\\:","",Sys.time()),'.png',sep='')},
+  #   content = function(file) {
+  #     png(filename=file, height= 1600, width=4800, units= "px", res=300) #if(...=="png"){png(file)} else if(...=="pdf"){pdf(file)}
+  #     plotR()
+  #     dev.off()
+  #   })
+  # 
+  # tableContentR <- reactive({
+  #   tmp <- c(scenario_iR(), API, parametersR())
+  #   tmp2 <- cbind(ParLabel[,1], tmp, ParLabel[,2], names(tmp))
+  #   colnames(tmp2) <- c("Name","Value","Unit","VarName")
+  #   tmp2
+  # })
   
-  tableContentR <- reactive({
-    tmp <- c(scenario_iR(), input$API, parametersR())
-    tmp2 <- cbind(ParLabel[,1], tmp, ParLabel[,2], names(tmp))
-    colnames(tmp2) <- c("Name","Value","Unit","VarName")
-    tmp2
-  })
   
-  
-}
-
-shinyApp(ui = ui, server = server)
