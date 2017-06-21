@@ -3,6 +3,7 @@ library(deSolve)
 library(shiny)
 library(TSA)
 library(Rcpp)
+library(stringr)
 sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
 source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
 
@@ -237,7 +238,9 @@ for(i in 1:nrow(simValueTable)){
   result[i,2] <- GMSout[nrow(GMSout),4]
 }
 
-write.csv(result,paste("result/psa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
+result_combined <- cbind(result,simValueTable)
+colnames(result_combined) <- c('total_incidence','prevalence',valueTable[,1])
+write.csv(result_combined,paste("result/psa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
 
 incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s, byrow = T)
 prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s, byrow = T)
@@ -258,18 +261,30 @@ incidenceRange <- incidenceRange[order(rangeSize),]
 #sort
 #label in barplot
 
-barplot(incidenceRange[,1], names.arg = incidenceRange[,3], horiz=T, xlim=c(-.3,1), beside = T, las=1)
-barplot(incidenceRange[,2], horiz=T, xlim=c(-.3,1), beside=T, add=T)
+# barplot(incidenceRange[,1], names.arg = incidenceRange[,3], horiz=T, xlim=c(-.3,1), beside = T, las=1)
+# barplot(incidenceRange[,2], horiz=T, xlim=c(-.3,1), beside=T, add=T)
 
 png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
 par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, axes=F, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='API')
+barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, axes=F, col='light blue', main="Sensitivity on incidence, Savannakhet model \n user input parameters only", xlab='API')
 barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col='gold')
 axis(1, at=seq(-.1,1,by=.1), labels = seq(-.1,1,by=.1)+round(default.result[,1]*12,1), ylab='API')
 legend(x=.5,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
 dev.off()
 
-# prevalenceDiff <- prevalenceT-default.result[,1]
-# prevalenceMin <- apply(prevalenceDiff,1,min)
-# prevalenceMax <- apply(prevalenceDiff,1,max)
-# prevalenceRange <- cbind(prevalenceMin,prevalenceMax)
+prevalenceDiff <- prevalenceT-default.result[,2]
+prevalenceLowValue <- prevalenceDiff[,1]
+prevalenceHiValue <- prevalenceDiff[,2]
+
+prevalenceRange <- cbind(as.data.frame(cbind(prevalenceLowValue,prevalenceHiValue)), valueTable[,1])
+rangeSize2 <- abs(prevalenceRange[,2]-prevalenceRange[,1])
+prevalenceRange <- prevalenceRange[order(rangeSize2),]
+
+
+png(file=paste('result/prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+par(mar=c(5, 7, 4, 2), cex=1.5)
+barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='prevalence')
+barplot(prevalenceRange[,2], horiz=T, axes=F, beside=T, add=T, col='gold')
+#axis(1, at=seq(-.1,1,by=.1), labels = seq(-.1,1,by=.1)+round(default.result[,1]*12,1), ylab='API')
+legend(x=.5,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+dev.off()
