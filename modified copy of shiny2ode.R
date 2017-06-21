@@ -41,6 +41,17 @@ shiny2ode <- function(shinyStringS){
   matrix(unlist(y), nrow=length(y), byrow=T)
 }
 
+genSimValue <- function(vrl, no.s){
+  simValueTable <- matrix(NA,nrow(vrl)*no.s,nrow(vrl)) #has row as scenario and column as variables
+  for(i in 1:nrow(vrl)){
+    for(j in 1:(no.s)){
+      simValueTable[j+(no.s*(i-1)),i] <- seq(vrl[i,2],vrl[i,3],length=no.s)[j]
+    }
+    simValueTable[is.na(simValueTable[,i]),i] <- vrl[i,1]
+  }
+  simValueTable
+}
+
 #example  
 z <- 'sliderInput(inputId="API", label = "baseline API", value = 10, min=1, max=100,step=0.5),
 sliderInput(inputId="bh_max", label = "number of mosquito bites per human per night (peak season)", value = 20, min=0, max=80,step=1), 
@@ -103,30 +114,16 @@ sliderInput(inputId="MSATsensU", label = "sensitivity HS RDT (micro undetectable
 
 valueTable <- shiny2ode(z)
 
+valueRange <- matrix(as.numeric(valueTable[,c(2,3,4)]),nrow(valueTable),3)
 
 
-#draft
-# sec.part <- str_split('sliderInput(inputId="API", label = "baseline API", value = 10, min=1, max=100,step=0.5),', 'inputId=')[[1]][2]
-# 
-# varName <- str_sub(str_split(sec.part,",.*label")[[1]][1],2,-2)
-# 
-# Values0 <- str_split(sec.part,",.*label")[[1]][2]
-# 
-# defValue.part <- str_split(Values0,",?[ ]min")[[1]][1]
-# 
-# Values1 <- str_split(Values0,",?[ ]min")[[1]][2]
-# 
-# defValue <- str_trim(str_split(defValue.part, ",.*value.*=")[[1]][2])
-# 
-# #another way
-# 
-# split.vector <- str_split('sliderInput(inputId="API", label = "baseline API", value = 10, min=1, max=100,step=0.5),', '=|,|\\)')
-# step1 <- lapply(split.vector,str_trim)
-# varName <- str_sub(step1[[1]][2],2,-2)
-# step2 <- lapply(step1, as.numeric)
-# Values <- t(sapply(step2, na.remove))
-# c(varName,Values)
-# x <- lapply(z, str_trim)
-# y <- lapply(x[[1]][str_length(x[[1]])>10], odeExtractor)
-# 
-# matrix(unlist(y), nrow=4, byrow=T)
+#transform the valueTable into 
+#1. ODE code
+cat(paste(valueTable[,1],"<-",valueTable[,2]), sep='\n')
+
+
+#2. to use in for loop
+cat(paste(valueTable[,1]," <- simValueTable[i,",1:nrow(valueTable),"]", sep=""), sep='\n')
+
+
+
