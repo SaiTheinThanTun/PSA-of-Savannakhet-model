@@ -17,7 +17,7 @@ VACon <- TRUE
 MSATon <- TRUE
 primon <- FALSE
 
-no.s <- 4 #no. of simulations/ no. of values between the range
+no.s <- 2 #no. of simulations/ no. of values between the range
 result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'modified copy of shiny2ode.R'
 
 simValueTable <- genSimValue(valueRange,no.s)
@@ -246,11 +246,14 @@ prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s)
 source('running_psa_defaultValue.R')
 
 incidenceDiff <- incidenceT-default.result[,1]
-incidenceMin <- apply(incidenceDiff,1,min)
-incidenceMax <- apply(incidenceDiff,1,max)
+#incidenceMin <- apply(incidenceDiff,1,min)
+#incidenceMax <- apply(incidenceDiff,1,max)
+incidenceLowValue <- incidenceDiff[,1]
+incidenceHiValue <- incidenceDiff[,2]
 
-incidenceRange <- cbind(as.data.frame(cbind(incidenceMin,incidenceMax)), valueTable[,1])
-rangeSize <- incidenceRange[,2]-incidenceRange[,1]
+#incidenceRange <- cbind(as.data.frame(cbind(incidenceMin,incidenceMax)), valueTable[,1])
+incidenceRange <- cbind(as.data.frame(cbind(incidenceLowValue,incidenceHiValue)), valueTable[,1])
+rangeSize <- abs(incidenceRange[,2]-incidenceRange[,1])
 incidenceRange <- incidenceRange[order(rangeSize),]
 #sort
 #label in barplot
@@ -258,10 +261,15 @@ incidenceRange <- incidenceRange[order(rangeSize),]
 barplot(incidenceRange[,1], names.arg = incidenceRange[,3], horiz=T, xlim=c(-.3,1), beside = T, las=1)
 barplot(incidenceRange[,2], horiz=T, xlim=c(-.3,1), beside=T, add=T)
 
-barplot(incidenceRange[,1], horiz=T, xlim=c(-.3,6), beside = T, axes=F)
-axis(1, at=seq(-1,6,by=.1), labels = seq(-1,6,by=.1)+round(default.result[,1]*1000,0))
+png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+par(mar=c(5, 7, 4, 2), cex=1.5)
+barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, axes=F, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='API')
+barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col='gold')
+axis(1, at=seq(-.1,1,by=.1), labels = seq(-.1,1,by=.1)+round(default.result[,1]*12,1), ylab='API')
+legend(x=.5,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+dev.off()
 
-prevalenceDiff <- prevalenceT-default.result[,1]
-prevalenceMin <- apply(prevalenceDiff,1,min)
-prevalenceMax <- apply(prevalenceDiff,1,max)
-prevalenceRange <- cbind(prevalenceMin,prevalenceMax)
+# prevalenceDiff <- prevalenceT-default.result[,1]
+# prevalenceMin <- apply(prevalenceDiff,1,min)
+# prevalenceMax <- apply(prevalenceDiff,1,max)
+# prevalenceRange <- cbind(prevalenceMin,prevalenceMax)
