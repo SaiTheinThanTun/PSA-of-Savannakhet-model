@@ -1,11 +1,15 @@
-setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/")
+#setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/") #mac
+setwd("D:/OneDrive/MORU/Projects/PSA of Savannakhet model/") #windows
 library(deSolve)
 library(shiny)
 library(TSA)
 library(Rcpp)
 library(stringr)
-sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
-source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
+#sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
+#source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
+sourceCpp("modGMS.cpp")
+source("modified copy of shiny2ode.R")
+
 
 #code to construct the 'for' loop for PSA will be generated from sourcing 'modified copy of shiny2ode.R'
 #valueTable was also in there

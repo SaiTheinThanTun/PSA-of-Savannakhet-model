@@ -1,0 +1,26 @@
+---
+title: "PSA_Savannakhet"
+author: "Sai Thein Than Tun"
+date: "July 21, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+We conduct a probabilistic sensitivity analysis. There are 37 parameters in total. 
+```{r}
+var37 <- read.csv('var37.csv')[,2]
+var37
+```
+22 are related to intervention.
+```{r echo=FALSE}
+var37[15:37]
+```
+
+## Part 1: Pre-intervention
+
+## Part 2: Intervention
