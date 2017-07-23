@@ -11,15 +11,18 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ## Introduction
 
-We conduct a probabilistic sensitivity analysis. There are 37 parameters in total. 
+We conduct a probabilistic sensitivity analysis (PSA). There are 37 parameters in total. 
 ```{r}
 var37 <- read.csv('var37.csv')[,2]
 var37
 ```
-22 are related to intervention.
+14 parameters are related to baseline characteristics.
 ```{r echo=FALSE}
-var37[15:37]
+var37[1:14]
 ```
+We conduct a PSA on these 14 parameters. We chose [100] parameter sets that reflect the baseline characteristics of the malaria transmission in Savannakhet, Laos. This is done by having the model output incidence and prevalence at a [certain] timepoint and choosing those parameter sets that could generate incidence and prevalence values within the range [range to be given]. Further detail is mentioned in Part 1.
+
+Using the [100] parameter sets, we conduct PSA on the remaining 22 parameters that are to do with the interventions. We tested on 1000 sets of intervention parameter for each set of baseline parameter, creating (1000*100=10^5) sets of parameters.
 
 ## Part 1: Pre-intervention
 
