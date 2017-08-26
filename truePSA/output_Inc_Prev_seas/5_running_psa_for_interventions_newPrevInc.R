@@ -145,7 +145,7 @@ simValueTable <- read.csv('result/plausibleParamFinal.csv')
 for(j in 1:2){
   EDATon <- TRUE
   ITNon <- TRUE
-  IRSon <- TRUE
+  IRSon <- FALSE
   MDAon <- TRUE
   VACon <- j>1
   MSATon <- TRUE
