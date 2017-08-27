@@ -454,7 +454,7 @@ server <- function(input, output, session) {
     y <- SdRd_[runin:length(SdRd_)]
     y2 <- SdRd_2[runin:length(SdRd_)]
     y3 <- SdRd_3[runin:length(SdRd_)]
-    plot(x,y, type='l')
+    plot(x,y, type='l', main=paste(parametersR()['effv_3'],'test'))
     #lines()
     for(j in 2:length(GMSouti)){
       lines(x,GMSouti[[j]][,5][runin:length(SdRd_)],col=palette()[j])#rainbow(length(GMSouti)-1))

@@ -25,7 +25,10 @@ parameters <- c(
   effv_1 = .75,
   effv_2 = .8,
   effv_3 = .92,
-  vh = 90/365
+  vh = 90/365,
+  v_start = 2/52, #2 weeks for vaccine to have effect
+  v_fast = 5.6, #45 days of half-life, log(2)/(45/365)=5.6
+  v_slow = 0.428 #591 days of half-life, log(2)/(591/365)= 0.428
 )
 
 
