@@ -1,5 +1,5 @@
-#setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/") #mac
-setwd("D:/OneDrive/MORU/Projects/PSA of Savannakhet model/") #windows
+#setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/truePSA/output_Inc_Prev_seas/") #mac
+setwd("D:/OneDrive/MORU/Projects/PSA of Savannakhet model/truePSA/output_Inc_Prev_seas/") #windows
 library(deSolve)
 library(shiny)
 library(TSA)
@@ -7,26 +7,29 @@ library(Rcpp)
 library(stringr)
 #sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
 #source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
-sourceCpp("modGMS.cpp")
-source("modified copy of shiny2ode.R")
+sourceCpp("0_modGMS.cpp")
+source("1_modified copy of shiny2ode.R")
 
 
 #code to construct the 'for' loop for PSA will be generated from sourcing 'modified copy of shiny2ode.R'
 #valueTable was also in there
 
-EDATon <- TRUE
-ITNon <- TRUE
+EDATon <- FALSE
+ITNon <- FALSE
 IRSon <- FALSE
-MDAon <- TRUE
-VACon <- TRUE
-MSATon <- TRUE
+MDAon <- FALSE
+VACon <- FALSE
+MSATon <- FALSE
 primon <- FALSE
 
-no.s <- 2 #no. of simulations/ no. of values between the range
-result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'modified copy of shiny2ode.R'
+#no.s <- 2 #no. of simulations/ no. of values between the range
+#result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'modified copy of shiny2ode.R'
 
-simValueTable <- genSimValue(valueRange,no.s)
-
+#simValueTable <- genSimValue(valueRange,no.s) 
+#valueRange was for the univariate sensitivity analysis
+#we will use here psaTableBaseline that is generated in 'modified copy of shiny2ode.R'
+simValueTable <- psaTableBaseline
+result <- matrix(NA, nrow(simValueTable),2)
 for(i in 1:nrow(simValueTable)){
   #input (later will serve as getting data from for loop)
   API <- simValueTable[i,1]
@@ -86,7 +89,7 @@ for(i in 1:nrow(simValueTable)){
                     nuTr = 14,                   # days of infectiosness after treatment ACT [N]
                     nuTrp = 7,                   # days of infectiosness after treatment ACT+primaquine [N]
                     alpha = 0.7,                   # relative amplitude seasonality [N]
-                    # phi = 0.0,                   # phase angle seasonality [N]
+                    phi = 0.0,                   # phase angle seasonality [N]
                     epsilonh=0.23,                 # per bite probability of an infectious mosquito infecting a human
                     epsilonm=0.5,                  # per bite probability of an infectious human infecting a mosquito
                     b=365/3,                       # per mosquito rate of biting
@@ -238,57 +241,59 @@ for(i in 1:nrow(simValueTable)){
   
   #GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
   
-  result[i,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
-  result[i,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
+  result[i,1] <- GMSout[nrow(GMSout),2]
+  result[i,2] <- GMSout[nrow(GMSout),4]
 }
 
 result_combined <- cbind(result,simValueTable)
 colnames(result_combined) <- c('detected_incidence','prevalence',valueTable[,1])
 write.csv(result_combined,paste("result/psa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
 
-incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s, byrow = T)
-prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s, byrow = T)
 
-#get default.result
-source('running_psa_defaultValue.R')
-
-incidenceDiff <- incidenceT-default.result[,1]
-#incidenceMin <- apply(incidenceDiff,1,min)
-#incidenceMax <- apply(incidenceDiff,1,max)
-incidenceLowValue <- incidenceDiff[,1]
-incidenceHiValue <- incidenceDiff[,2]
-
-#incidenceRange <- cbind(as.data.frame(cbind(incidenceMin,incidenceMax)), valueTable[,1])
-incidenceRange <- cbind(as.data.frame(cbind(incidenceLowValue,incidenceHiValue)), valueTable[,1])
-rangeSize <- abs(incidenceRange[,2]-incidenceRange[,1])
-incidenceRange <- incidenceRange[order(rangeSize),]
-#sort
-#label in barplot
-
-# barplot(incidenceRange[,1], names.arg = incidenceRange[,3], horiz=T, xlim=c(-.3,1), beside = T, las=1)
-# barplot(incidenceRange[,2], horiz=T, xlim=c(-.3,1), beside=T, add=T)
-
-png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
-par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.5,.2), beside = T, axes=F, col='light blue', main="Sensitivity on incidence, Savannakhet model \n user input parameters only", xlab='% reduction in incidence')
-barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor('gold',alpha.f = .7))
-axis(1, at=seq(-.5,.2,by=.1), labels = seq(-.5,.2,by=.1)+round(default.result[,1],2), ylab='% reduction in incidence')
-legend(x=-.4,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
-dev.off()
-
-prevalenceDiff <- prevalenceT-default.result[,2]
-prevalenceLowValue <- prevalenceDiff[,1]
-prevalenceHiValue <- prevalenceDiff[,2]
-
-prevalenceRange <- cbind(as.data.frame(cbind(prevalenceLowValue,prevalenceHiValue)), valueTable[,1])
-rangeSize2 <- abs(prevalenceRange[,2]-prevalenceRange[,1])
-prevalenceRange <- prevalenceRange[order(rangeSize2),]
-
-
-png(file=paste('result/prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
-par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], axes=F, las=1, horiz=T, xlim=c(-.2,.3), beside = T, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='% reduction in prevalence')
-barplot(prevalenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor('gold',alpha.f = .7))
-axis(1, at=seq(-.2,.3,by=.1), labels = seq(-.2,.3,by=.1)+round(default.result[,2],2), ylab='% reduction in prevalence')
-legend(x=.05,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
-dev.off()
+#we omit this for truePSA for now
+# incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s, byrow = T)
+# prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s, byrow = T)
+# 
+# #get default.result
+# source('running_psa_defaultValue.R')
+# 
+# incidenceDiff <- incidenceT-default.result[,1]
+# #incidenceMin <- apply(incidenceDiff,1,min)
+# #incidenceMax <- apply(incidenceDiff,1,max)
+# incidenceLowValue <- incidenceDiff[,1]
+# incidenceHiValue <- incidenceDiff[,2]
+# 
+# #incidenceRange <- cbind(as.data.frame(cbind(incidenceMin,incidenceMax)), valueTable[,1])
+# incidenceRange <- cbind(as.data.frame(cbind(incidenceLowValue,incidenceHiValue)), valueTable[,1])
+# rangeSize <- abs(incidenceRange[,2]-incidenceRange[,1])
+# incidenceRange <- incidenceRange[order(rangeSize),]
+# #sort
+# #label in barplot
+# 
+# # barplot(incidenceRange[,1], names.arg = incidenceRange[,3], horiz=T, xlim=c(-.3,1), beside = T, las=1)
+# # barplot(incidenceRange[,2], horiz=T, xlim=c(-.3,1), beside=T, add=T)
+# 
+# png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+# par(mar=c(5, 7, 4, 2), cex=1.5)
+# barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, axes=F, col='light blue', main="Sensitivity on incidence, Savannakhet model \n user input parameters only", xlab='API')
+# barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col='gold')
+# axis(1, at=seq(-.1,1,by=.1), labels = seq(-.1,1,by=.1)+round(default.result[,1]*12,1), ylab='API')
+# legend(x=.5,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+# dev.off()
+# 
+# prevalenceDiff <- prevalenceT-default.result[,2]
+# prevalenceLowValue <- prevalenceDiff[,1]
+# prevalenceHiValue <- prevalenceDiff[,2]
+# 
+# prevalenceRange <- cbind(as.data.frame(cbind(prevalenceLowValue,prevalenceHiValue)), valueTable[,1])
+# rangeSize2 <- abs(prevalenceRange[,2]-prevalenceRange[,1])
+# prevalenceRange <- prevalenceRange[order(rangeSize2),]
+# 
+# 
+# png(file=paste('result/prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+# par(mar=c(5, 7, 4, 2), cex=1.5)
+# barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], las=1, horiz=T, xlim=c(-.1,1), beside = T, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='prevalence')
+# barplot(prevalenceRange[,2], horiz=T, axes=F, beside=T, add=T, col='gold')
+# #axis(1, at=seq(-.1,1,by=.1), labels = seq(-.1,1,by=.1)+round(default.result[,1]*12,1), ylab='API')
+# legend(x=.5,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+# dev.off()

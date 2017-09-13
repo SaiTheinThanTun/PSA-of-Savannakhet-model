@@ -4,6 +4,7 @@
 #2017 June 20
 #Turn Shiny UI Scripts into a matrix with
 #Variable name, Default value, Min, and Max (and Steps if applicable)
+library(stringr)
 
 odeExtractor <- function(shinyString){
   split.vector <- str_split(shinyString, '=|,|\\)')
@@ -54,13 +55,13 @@ genSimValue <- function(vrl, no.s){
 
 #example  
 z <- 'sliderInput(inputId="API", label = "baseline API", value = 10, min=1, max=30,step=0.5),
-sliderInput(inputId="bh_max", label = "number of mosquito bites per human per night (peak season)", value = 20, min=5, max=40,step=1), 
+sliderInput(inputId="bh_max", label = "number of mosquito bites per human per night (peak season)", value = 20, min=15, max=25,step=1), 
 sliderInput(inputId="eta", label = "% of all infections that are caught outside the village (forest)", value = 30, min=5, max=60,step=10),
 sliderInput(inputId="covEDAT0", label = "baseline % of all clinical cases treated", value = 25, min=10, max=50)
 ),
 column(3,
 sliderInput(inputId="covITN0", label = "baseline coverage of ITN (%) ", value = 70, min=50, max=90,step=.5),
-sliderInput(inputId="effITN", label = "% of infections averted due to ownership of ITN ", value = 30, min=5, max=50), 
+sliderInput(inputId="effITN", label = "% of infections averted due to ownership of ITN ", value = 30, min=20, max=50), 
 sliderInput(inputId="covIRS0", label = "baseline coverage of IRS (%) ", value = 0, min=0, max=90,step=10),
 sliderInput(inputId="effIRS", label = "% reduction in biting rate due to IRS ", value = 15, min=5, max=25,step=5)
 ),

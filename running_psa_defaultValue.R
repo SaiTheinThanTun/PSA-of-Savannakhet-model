@@ -1,17 +1,17 @@
-setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/")
-library(deSolve)
-library(shiny)
-library(TSA)
-library(Rcpp)
-sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
-source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
+# setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/")
+# library(deSolve)
+# library(shiny)
+# library(TSA)
+# library(Rcpp)
+# sourceCpp("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modGMS.cpp")
+# source("~/OneDrive/MORU/Projects/PSA of Savannakhet model/modified copy of shiny2ode.R")
 
 #code to construct the 'for' loop for PSA will be generated from sourcing 'modified copy of shiny2ode.R'
 #valueTable was also in there
 
 EDATon <- TRUE
 ITNon <- TRUE
-IRSon <- TRUE
+IRSon <- FALSE
 MDAon <- TRUE
 VACon <- TRUE
 MSATon <- TRUE
@@ -231,5 +231,5 @@ MSATsensU <- 4
   
   #GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
   
-  default.result[1,1] <- GMSout[nrow(GMSout),3]
-  default.result[1,2] <- GMSout[nrow(GMSout),4]
+  default.result[1,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
+  default.result[1,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
