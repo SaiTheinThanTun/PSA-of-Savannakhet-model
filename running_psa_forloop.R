@@ -1,5 +1,5 @@
-#setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/") #mac
-setwd("D:/OneDrive/MORU/Projects/PSA of Savannakhet model/") #windows
+setwd("~/OneDrive/MORU/Projects/PSA of Savannakhet model/") #mac
+#setwd("D:/OneDrive/MORU/Projects/PSA of Savannakhet model/") #windows
 library(deSolve)
 library(shiny)
 library(TSA)
@@ -270,9 +270,9 @@ incidenceRange <- incidenceRange[order(rangeSize),]
 
 png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
 par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.5,.2), beside = T, axes=F, col='light blue', main="Sensitivity on incidence, Savannakhet model \n user input parameters only", xlab='% reduction in incidence')
+barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.5,.1), beside = T, axes=F, col='light blue', main="Sensitivity on incidence, Savannakhet model \n user input parameters only", xlab='% reduction in incidence')
 barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor('gold',alpha.f = .7))
-axis(1, at=seq(-.5,.2,by=.1), labels = seq(-.5,.2,by=.1)+round(default.result[,1],2), ylab='% reduction in incidence')
+axis(1, at=seq(-.5,.1,by=.01), labels = 100*seq(-.5,.1,by=.01)+round(default.result[,1]*100,0), ylab='% reduction in incidence')
 legend(x=-.4,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
 dev.off()
 
@@ -287,8 +287,8 @@ prevalenceRange <- prevalenceRange[order(rangeSize2),]
 
 png(file=paste('result/prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
 par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], axes=F, las=1, horiz=T, xlim=c(-.2,.3), beside = T, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='% reduction in prevalence')
+barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], axes=F, las=1, horiz=T, xlim=c(-.2,.06), beside = T, col='light blue', main="Sensitivity analysis, Savannakhet model \n user input parameters only", xlab='% reduction in prevalence')
 barplot(prevalenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor('gold',alpha.f = .7))
-axis(1, at=seq(-.2,.3,by=.1), labels = seq(-.2,.3,by=.1)+round(default.result[,2],2), ylab='% reduction in prevalence')
-legend(x=.05,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+axis(1, at=seq(-.2,.06,by=.01), labels = 100*seq(-.2,.06,by=.01)+round(default.result[,2]*100,0), ylab='% reduction in prevalence')
+legend(x=-.185,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
 dev.off()

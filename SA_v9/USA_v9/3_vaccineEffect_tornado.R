@@ -1,9 +1,3 @@
-#########################################
-####Univariate Sensitivity Analysis######
-#Developed by Sai Thein Than Tun, sai@tropmedres.ac
-#First development date: 2017 June 20
-#Updated: 2017 September 06
-#run the model for default value and then min and max values varying each value at a time
 
 #setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9")
 setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9")
@@ -17,11 +11,12 @@ library(Rcpp)
 
 
 ####intervention switches####
+#scenario 1
 EDATon <- TRUE
 ITNon <- TRUE
 IRSon <- FALSE
 MDAon <- TRUE
-VACon <- TRUE
+VACon <- FALSE
 v_same <- TRUE
 MSATon <- TRUE
 primon <- FALSE
@@ -150,6 +145,39 @@ default.result[1,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSou
 default.result[1,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
 
 
+
+
+###Scenario 2####
+#source('1_shiny2ode.R')
+EDATon <- TRUE
+ITNon <- TRUE
+IRSon <- FALSE
+MDAon <- TRUE
+VACon <- TRUE
+v_same <- TRUE
+MSATon <- TRUE
+primon <- FALSE
+
+# define the number of weeks to run the model
+dt<-1/12
+startyear<-2007
+stopyear<-2023
+maxt<-stopyear-startyear
+times <- seq(0, maxt, by = dt)
+tsteps<-length(times)
+
+
+###common input to default and min/max####
+scenario_iR<-(c(EDATon = EDATon,
+                ITNon = ITNon,
+                IRSon = IRSon,
+                MDAon = MDAon,
+                primon = primon,
+                MSATon = MSATon,
+                VACon = as.numeric(VACon),
+                v_same = v_same))
+
+
 ####for####
 result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'shiny2ode.R'
 
@@ -195,7 +223,7 @@ for(i in 1:nrow(simValueTable)){
   MSATsensC <- simValueTable[i,37]
   MSATsensA <- simValueTable[i,38]
   MSATsensU <- simValueTable[i,39]
-
+  
   #change 3
   parametersR <- (c(
     bh_max = bh_max,                 # bites per human per night
@@ -243,55 +271,67 @@ for(i in 1:nrow(simValueTable)){
     ks = ks
     #vh = vh
   ))
-
-# initial prevalence
-initprevR <- (0.001*API)
-
-GMSout <- runGMS(initprevR, scenario_iR,parametersR)
-
-#GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
-
-result[i,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
-result[i,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
+  
+  # initial prevalence
+  initprevR <- (0.001*API)
+  
+  GMSout <- runGMS(initprevR, scenario_iR,parametersR)
+  
+  #GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
+  
+  result[i,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
+  result[i,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
 }
 
-####arranging results####
-result_combined <- cbind(result,simValueTable)
-colnames(result_combined) <- c('detected_incidence','prevalence',valueTable[,1])
-write.csv(result_combined,paste("result/usa_run_",gsub(':','_',Sys.time()),".csv", sep = ''))
+####subsetting vaccine parameters####
+par_vaccine <- c(22,23,24,28,29,33,34) #dm, ka, delta, kf, ks, effv_3, effv_4
+par_vaccine_double <- sort(c(par_vaccine*2,(par_vaccine*2+1)))
+result <- result[par_vaccine_double,]
+simValueTable <- simValueTable[par_vaccine_double,]
 
+####arranging results with vaccine on####
 incidenceT <- matrix(result[,1], nrow(result)/no.s,no.s, byrow = T)
 prevalenceT <- matrix(result[,2], nrow(result)/no.s,no.s, byrow = T)
+
+
+###write scenario comparison results####
 
 incidenceDiff <- incidenceT-default.result[,1]
 incidenceLowValue <- incidenceDiff[,1]
 incidenceHiValue <- incidenceDiff[,2]
 
-incidenceRange <- cbind(as.data.frame(cbind(incidenceLowValue,incidenceHiValue)), valueTable[,1])
+incidenceRange <- cbind(as.data.frame(cbind(incidenceLowValue,incidenceHiValue)), valueTable[par_vaccine,1])
 rangeSize <- abs(incidenceRange[,2]-incidenceRange[,1])
 incidenceRange <- incidenceRange[order(rangeSize),]
 
-png(file=paste('result/incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
-par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.65,0.15), beside = T, axes=F, col='light blue', main=paste("Sensitivity on incidence, Savannakhet model \n vaccinate all:", !v_same), xlab='% reduction in incidence')
-barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor( "gold", alpha.f = 0.7)) #col='gold', alpha=.8)
-axis(1, at=seq(-.65,0.15,by=.01), labels = 100*seq(-.65,0.15,by=.01)+round(default.result[,1]*100,0), ylab='% reduction in incidence')
-legend(x=-.6,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
-dev.off()
 
 prevalenceDiff <- prevalenceT-default.result[,2]
 prevalenceLowValue <- prevalenceDiff[,1]
 prevalenceHiValue <- prevalenceDiff[,2]
 
-prevalenceRange <- cbind(as.data.frame(cbind(prevalenceLowValue,prevalenceHiValue)), valueTable[,1])
+prevalenceRange <- cbind(as.data.frame(cbind(prevalenceLowValue,prevalenceHiValue)), valueTable[par_vaccine,1])
 rangeSize2 <- abs(prevalenceRange[,2]-prevalenceRange[,1])
 prevalenceRange <- prevalenceRange[order(rangeSize2),]
 
+write.csv(incidenceRange,paste('result/incidenceRange',gsub(':','_',Sys.time()),'.csv', sep = ''))
+write.csv(prevalenceRange,paste('result/prevalenceRange',gsub(':','_',Sys.time()),'.csv', sep = '')) 
 
-png(file=paste('result/prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
-par(mar=c(5, 7, 4, 2), cex=1.5)
-barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], axes=F,las=1, horiz=T, xlim=c(-.2,.05), beside = T, col='light blue', main=paste("Sensitivity on prevalence, Savannakhet model \n vaccinate all:", !v_same), xlab='% reduction in prevalence')
+####plots####
+png(file=paste('result/compare_incidenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+par(mar=c(5, 7, 4, 2), cex=1.25)
+barplot(incidenceRange[,1], names.arg = incidenceRange[,3], las=1, horiz=T, xlim=c(-.05,0.05), beside = T, axes=F, col='light blue', main=paste("Sensitivity on incidence, Savannakhet model \n EDAT+ITN+MDA vs EDAT+ITN+MDA+VAC"), xlab='% reduction in incidence')
+barplot(incidenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor( "gold", alpha.f = 0.7)) #col='gold', alpha=.8)
+axis(1, at=seq(-.05,0.05,by=.01), labels = 100*seq(-.05,0.05,by=.01)+round(default.result[,1]*100,0), ylab='% reduction in incidence')
+legend(x=-.045,y=3,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1)
+dev.off()
+
+
+
+
+png(file=paste('result/compare_prevalenceTornado_',gsub(':','_',Sys.time()),'.png',sep = ''), width = 1280, height = 800)
+par(mar=c(5, 7, 4, 2), cex=1.25)
+barplot(prevalenceRange[,1], names.arg = prevalenceRange[,3], axes=F,las=1, horiz=T, xlim=c(-.05,0.05), beside = T, col='light blue', main=paste("Sensitivity on prevalence, Savannakhet model \n EDAT+ITN+MDA vs EDAT+ITN+MDA+VAC"), xlab='% reduction in prevalence')
 barplot(prevalenceRange[,2], horiz=T, axes=F, beside=T, add=T, col=adjustcolor( "gold", alpha.f = 0.7))
-axis(1, at=seq(-.2,.05,by=.01), labels = 100*seq(-.2,.05,by=.01)+round(default.result[,2]*100,0), ylab='% reduction in prevalence')
-legend(x=-.175,y=8,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1.5)
+axis(1, at=seq(-.05,0.05,by=.01), labels = 100*seq(-.05,0.05,by=.01)+round(default.result[,2]*100,0), ylab='% reduction in prevalence')
+legend(x=-.045,y=3,legend=c('lower value of parameter','higher value of parameter'), fill=c('light blue','gold'), cex=1)
 dev.off()
