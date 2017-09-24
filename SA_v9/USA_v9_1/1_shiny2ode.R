@@ -6,8 +6,8 @@
 #Turn Shiny UI Scripts into a matrix with
 #Variable name, Default value, Min, and Max (and Steps if applicable)
 
-#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9")
-setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9")
+#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9_1")
+setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9_1")
 library(stringr)
 library(TSA)
 

@@ -2,29 +2,39 @@
 ####Univariate Sensitivity Analysis######
 #Developed by Sai Thein Than Tun, sai@tropmedres.ac
 #First development date: 2017 June 20
-#Updated: 2017 September 06
+#Updated: 2017 September 23
 #run the model for default value and then min and max values varying each value at a time
 
-#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9")
-setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9")
-sourceCpp('modGMS.cpp')
-source('1_shiny2ode.R')
-source('runGMSFunction.R')
+#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9_1")
+setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9_1")
 library(deSolve)
 library(shiny)
 library(TSA)
 library(Rcpp)
+sourceCpp('modGMS.cpp')
+source('1_shiny2ode.R')
+source('runGMSFunction.R')
 
 
 ####intervention switches####
-EDATon <- TRUE
-ITNon <- TRUE
-IRSon <- FALSE
-MDAon <- TRUE
-VACon <- TRUE
-v_same <- TRUE
-MSATon <- TRUE
-primon <- FALSE
+scenario_0<-(c(EDATon = FALSE,
+                ITNon = FALSE,
+                IRSon = FALSE,
+                MDAon = FALSE,
+                primon = FALSE,
+                MSATon = FALSE,
+                VACon = as.numeric(FALSE),
+                v_same = FALSE))
+
+scenario_iR<-(c(EDATon = TRUE,
+                ITNon = TRUE,
+                IRSon = FALSE,
+                MDAon = TRUE,
+                primon = FALSE,
+                MSATon = TRUE,
+                VACon = as.numeric(TRUE),
+                v_same = TRUE))
+v_same <- scenario_iR['v_same']
 
 # define the number of weeks to run the model
 dt<-1/12
@@ -34,17 +44,8 @@ maxt<-stopyear-startyear
 times <- seq(0, maxt, by = dt)
 tsteps<-length(times)
 
-
-
 ###common input to default and min/max####
-scenario_iR<-(c(EDATon = EDATon,
-                ITNon = ITNon,
-                IRSon = IRSon,
-                MDAon = MDAon,
-                primon = primon,
-                MSATon = MSATon,
-                VACon = as.numeric(VACon),
-                v_same = v_same))
+
 
 ###default####
 #change 2
@@ -142,13 +143,12 @@ parametersR <- (c(
 # initial prevalence
 initprevR <- (0.001*API)
 
-GMSout <- runGMS(initprevR, scenario_iR,parametersR)
+GMSout0 <- runGMS(initprevR, scenario_0,parametersR)
 
-#GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
+GMSouti <- runGMS(initprevR, scenario_iR,parametersR)
 
-default.result[1,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
-default.result[1,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
-
+default.result[1,1] <- (GMSout0[nrow(GMSout0),2]-GMSouti[nrow(GMSouti),2])/GMSout0[nrow(GMSout0),2]
+default.result[1,2] <- (GMSout0[nrow(GMSout0),4]-GMSouti[nrow(GMSouti),4])/GMSout0[nrow(GMSout0),4]
 
 ####for####
 result <- matrix(NA, nrow(valueRange)*no.s, 2) #valueTable and valueRange are from 'shiny2ode.R'
@@ -247,12 +247,12 @@ for(i in 1:nrow(simValueTable)){
 # initial prevalence
 initprevR <- (0.001*API)
 
-GMSout <- runGMS(initprevR, scenario_iR,parametersR)
+GMSout0 <- runGMS(initprevR, scenario_0,parametersR)
 
-#GMSout[nrow(GMSout),c(3,4)] #output total incidence and prevelance
+GMSouti <- runGMS(initprevR, scenario_iR,parametersR)
 
-result[i,1] <- (GMSout[GMSout[,1]==2018,2]-GMSout[nrow(GMSout),2])/GMSout[GMSout[,1]==2018,2] #GMSout[nrow(GMSout),2]
-result[i,2] <- (GMSout[GMSout[,1]==2018,4]-GMSout[nrow(GMSout),4])/GMSout[GMSout[,1]==2018,4] #GMSout[nrow(GMSout),4]
+result[i,1] <- (GMSout0[nrow(GMSout0),2]-GMSouti[nrow(GMSouti),2])/GMSout0[nrow(GMSout0),2]
+result[i,2] <- (GMSout0[nrow(GMSout0),4]-GMSouti[nrow(GMSouti),4])/GMSout0[nrow(GMSout0),4]
 }
 
 ####arranging results####

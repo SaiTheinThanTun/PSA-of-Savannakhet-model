@@ -5,8 +5,8 @@
 #Updated: 2017 September 06
 #run the model for default value and then min and max values varying each value at a time
 
-#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9")
-setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9")
+#setwd("D:\\OneDrive\\MORU\\Projects\\PSA of Savannakhet model\\SA_v9\\USA_v9_1")
+setwd("/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9_1")
 sourceCpp('modGMS.cpp')
 source('1_shiny2ode.R')
 source('runGMSFunction.R')

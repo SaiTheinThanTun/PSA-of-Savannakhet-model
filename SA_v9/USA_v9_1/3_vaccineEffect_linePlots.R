@@ -4,7 +4,7 @@
 #3. EDAT+ITN+MDA+RTS full coverage
 
 #write.csv(x,'xSeries.csv',row.names = FALSE) #to initiate the plot
-setwd('/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9')
+setwd('/Users/sai/OneDrive/MORU/Projects/PSA of Savannakhet model/SA_v9/USA_v9_1')
 source('runGMSFunction.R')
 xSeries <- read.csv('xSeries.csv')[,1]
 
